@@ -11,7 +11,7 @@ int binary_search(std::vector<float>& proba, int len_proba, float value);
         
 class population{
     public: 
-        float C0, C1, C2, C3, C4, C5, COMPATIBILITY_THRESHOLD;
+        float C1, C2, C3, C4, C5, COMPATIBILITY_THRESHOLD;
         int N_SPECIMEN, IN_SIZE, OUT_SIZE, N_SPECIES;
         int steps;
         int fittest_individual;
@@ -33,10 +33,10 @@ class population{
 
     public:
         // c0: avg_b_diff, c1: avg_w_diff, c2: n_disjoint_n, c3: n_disjoint_c, c4: n_excess_n, c5: n_excess_c, le tout divisé par les dna_length respectifs
-        population(float C0=.2, float C1=.2, float C2=.4, float C3=1.0, float C4=1.0, float C5=.4, float TRESHOLD=3.0,
+        population(float C1=.2, float C2=.4, float C3=1.0, float C4=1.0, float C5=.4, float TRESHOLD=3.0,
                    int N_SPECIMEN=100, int IN_SIZE=2, int OUT_SIZE=1, int N_SPECIES=10);
         void run_one_evolution_step();
-        void draw(sf::RenderWindow* window);
+        void draw(sf::RenderWindow* window, sf::Font& font);
 
 #if defined _DEBUG
         void test();

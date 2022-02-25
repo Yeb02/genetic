@@ -9,6 +9,7 @@ public:
 private:
 	sf::RenderWindow* window;
 	sf::CircleShape* shape;
+	sf::Font font;
 
 
 public:

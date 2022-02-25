@@ -37,9 +37,9 @@ void population::test() {
 }
 #endif
 
-population::population(float C0, float C1, float C2, float C3, float C4, float C5, float THRESHOLD, 
+population::population(float C1, float C2, float C3, float C4, float C5, float THRESHOLD, 
                        int N_SPECIMEN, int IN_SIZE, int OUT_SIZE, int N_SPECIES)
-    : C0(C0), C1(C1), C2(C2), C3(C3), C4(C4), C5(C5), COMPATIBILITY_THRESHOLD(THRESHOLD),
+    : C1(C1), C2(C2), C3(C3), C4(C4), C5(C5), COMPATIBILITY_THRESHOLD(THRESHOLD),
       N_SPECIMEN(N_SPECIMEN), IN_SIZE(IN_SIZE), OUT_SIZE(OUT_SIZE), N_SPECIES(N_SPECIES)
     
     { 
@@ -103,7 +103,7 @@ void population::mutate() {
     n_connection_mutations = 0;
 
     for (agent* a : specimens){
-        a->mutate(n_node_mutations, n_connection_mutations, new_node_mutations, new_connection_mutations); //N_SPECIMEN est overkill mais ne prenons pas de risques
+        a->mutate(n_node_mutations, n_connection_mutations, new_node_mutations, new_connection_mutations); 
     }
 }
 
@@ -132,12 +132,11 @@ void population::speciate() {
             pcc->n_disjoint_connection_genes = 0;
             pcc->n_excess_node_genes = 0;
             pcc->n_excess_connection_genes = 0;
-            pcc->average_bias_difference = 0.0;
             pcc->average_weight_difference = 0.0;
 
             specimens[i]->compute_compatibility(species_core_specimens[j], pcc);
 
-            compatibilities[j] = C0*pcc->average_bias_difference  + (C2 * pcc->n_disjoint_node_genes + C4 * pcc->n_excess_node_genes)/ specimens[i]->get_node_dna_length() +
+            compatibilities[j] = (C2 * pcc->n_disjoint_node_genes + C4 * pcc->n_excess_node_genes)/ specimens[i]->get_node_dna_length() +
                                  C1*pcc->average_weight_difference + (C3 * pcc->n_disjoint_connection_genes + C5 * pcc->n_excess_connection_genes) / specimens[i]->get_connection_dna_length();
                                   
             if (compatibilities[j] < compatibilities[most_compatible_species]) {
@@ -163,6 +162,7 @@ void population::speciate() {
             new_species++;
         }
     }
+    delete pcc;
 
     // keep species that have more than 0 individuals among those from last gen
     int alive_species=0, erasure_counter=0;
@@ -217,48 +217,42 @@ void population::evaluate_fitnesses() {  //TODO la fonction ici et dans le calcu
     }
     
     // individual fitnesses
-    float max_fitness = 0.0;
+    float max_fitness = -1000000.0;
+    float min_fitness = 1000000.0;
     float max_proba = 0.0;
     long double probability_normalization_factor = 0.0;
     for (int i = 0; i < N_SPECIMEN; i++) {
 
-        fitnesses[i] = specimens[i]->evaluate_fitness(data)*pow(specimen_per_species[specimens[i]->species_id], .1);
+        fitnesses[i] = specimens[i]->evaluate_fitness(data)/pow(specimen_per_species[specimens[i]->species_id], .3);
+        probability_normalization_factor += fitnesses[i];
         if (fitnesses[i] > max_fitness) {
             max_fitness = fitnesses[i];
-            //fittest_individual = i;
-        }
-
-        // TOUT CE QUI SUIT EST MODULABLE EST DEPEND DE LA TACHE A ACCOMPLIR
-
-        //probabilities[i] = pow(4, fitnesses[i]);
-        ////probabilities[i] = fitnesses[i];
-
-        //probability_normalization_factor += probabilities[i];
-    }
-    for (int i = 0; i < N_SPECIMEN; i++) {
-        probabilities[i] = max_fitness - fitnesses[i] + 100/fitnesses[i];
-        probability_normalization_factor += probabilities[i];
-        if (probabilities[i] < max_proba) {
-            max_proba = probabilities[i];
             fittest_individual = i;
         }
+        if (fitnesses[i] < min_fitness) {
+            min_fitness = fitnesses[i];
+        }
     }
-    if (probability_normalization_factor == 0) {  // un specime a un meilleur fitness que les autres suite à une mutation, mais les autres ont tous le même, extremement proche du pire
-        cout << "???" << endl;                    // il
+
+    probability_normalization_factor -= N_SPECIMEN * min_fitness;
+    if (probability_normalization_factor < .01) {
+         cout << "wtf" << endl;
     }
-    //cout << probability_normalization_factor << endl;
+
+    cout << probability_normalization_factor << endl;
     //cout <<  "max_fitness:    " << max_fitness << endl;
 
-    //create the probability-sum array used for picking 2 parents in the mating process  
-    probabilities[0] = probabilities[0]/ probability_normalization_factor;
-    for (int i = 1; i < N_SPECIMEN; i++) {
-        probabilities[i] = probabilities[i-1] + probabilities[i]/ probability_normalization_factor;
-    }
+    max_proba = (max_fitness-min_fitness) / probability_normalization_factor;
 
+    //create the probability-sum array used for picking 2 parents in the mating process  
+    probabilities[0] = (fitnesses[0] - min_fitness)/ probability_normalization_factor;
+    for (int i = 1; i < N_SPECIMEN; i++) {
+        probabilities[i] = probabilities[i-1] + (fitnesses[i] - min_fitness) / probability_normalization_factor;
+    }
 }
 
 
-void population::draw(sf::RenderWindow* window) {
+void population::draw(sf::RenderWindow* window, sf::Font& font) {
     // Some monitoring. Could use a dedicated function.
    /* if (fittest_individual >= 2) {
         cout << "probabilities:   " << probabilities[fittest_individual]- probabilities[fittest_individual-1] << "  " << probabilities[fittest_individual-1] - probabilities[fittest_individual-2] << endl;
@@ -268,6 +262,34 @@ void population::draw(sf::RenderWindow* window) {
         cout << "fitnesses:   " << fitnesses[fittest_individual] << "  " << fitnesses[fittest_individual+1] << endl;
     }*/
 
-    //draw
-    specimens[fittest_individual]->draw(window);
+    //draw fittest
+    //specimens[fittest_individual]->draw(window, 0, 0);
+
+    specimens[0]->draw(window, 0, 0);
+    specimens[1]->draw(window, 0, 300);
+
+
+    agent::compatibility_characteristics* pcc = new agent::compatibility_characteristics{};
+    pcc->n_disjoint_node_genes = 0;
+    pcc->n_disjoint_connection_genes = 0;
+    pcc->n_excess_node_genes = 0;
+    pcc->n_excess_connection_genes = 0;
+    pcc->average_weight_difference = 0.0;
+
+    specimens[0]->compute_compatibility(specimens[1], pcc);
+
+    float compat = (C2 * pcc->n_disjoint_node_genes + C4 * pcc->n_excess_node_genes) / specimens[0]->get_node_dna_length() +
+        C1 * pcc->average_weight_difference + (C3 * pcc->n_disjoint_connection_genes + C5 * pcc->n_excess_connection_genes) / specimens[0]->get_connection_dna_length();
+    delete pcc;
+
+
+    sf::Text text;
+    text.setFont(font); 
+    text.setString(to_string(compat));
+
+    text.setCharacterSize(24); // in pixels, not points!
+    text.setFillColor(sf::Color::White);
+    text.setStyle(sf::Text::Bold | sf::Text::Underlined);
+
+    window->draw(text);
 }

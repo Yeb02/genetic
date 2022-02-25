@@ -74,7 +74,6 @@ class agent{
             int n_disjoint_connection_genes;
             int n_excess_node_genes;
             int n_excess_connection_genes;
-            float average_bias_difference;
             float average_weight_difference;
         };
 
@@ -90,7 +89,7 @@ class agent{
         void mutate(int& n_node_mutations, int& n_connection_mutations, std::vector<new_node_mutation>& new_node_mutations, std::vector<new_connection_mutation>& new_connection_mutations);
         float evaluate_fitness(float data[100][2]);
         void compute_compatibility(agent* b, compatibility_characteristics* pcc);
-        void draw(sf::RenderWindow* window);
+        void draw(sf::RenderWindow* window, int x_offset, int y_offset);
         int get_node_dna_length(); 
         int get_connection_dna_length();
 

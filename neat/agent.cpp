@@ -213,7 +213,7 @@ void agent::mutate(int& n_node_mutations, int& n_connection_mutations, std::vect
 }
 
 
-
+//int agent::get_node_layer(
 
 void agent::add_node(int& n_node_mutations, std::vector<new_node_mutation>& new_node_mutations){
     // pick random enabled connection, to be changed by recursion,  TODO  !!
@@ -258,6 +258,7 @@ void agent::add_node(int& n_node_mutations, std::vector<new_node_mutation>& new_
         l++;
     }
     int l_out = l;
+
     int node_id_at_l_out = node_id_at_l;
     int connection_id_at_l_out = connection_id_at_l;
     
@@ -274,18 +275,38 @@ void agent::add_node(int& n_node_mutations, std::vector<new_node_mutation>& new_
         n_layers++;
 
     }   else { // else add at the beginning of a random layer between the two
+        /*cout << "start" << endl;
+        cout << l_in << " " << l_out << endl;
+        if (l_in == l_out) {
+            cout << "wtf" << endl;
+        }
         new_node_position = (node_id_at_l_out - node_id_at_l_in - nodes_per_layer[l_in])*uniform(rdm) + node_id_at_l_in + nodes_per_layer[l_in];
         node_id_at_l = node_id_at_l_in;
         l = l_in;
         connection_id_at_l = connection_id_at_l_in;
+        for (int i : nodes_per_layer) cout << i << " ";
+        cout << endl;
+        for (int i : connections_per_layer) cout << i << " ";
+        cout << endl;
+        cout << new_node_position << " " << endl;
+        cout << connection_id_at_l << " " << l << " " << node_id_at_l << " " << endl;
         while (node_id_at_l + nodes_per_layer[l] <= new_node_position) {
             node_id_at_l += nodes_per_layer[l];
             connection_id_at_l += connections_per_layer[l];
             l++;
+            cout << connection_id_at_l << " " << l << " " << node_id_at_l << " " << endl;
         }
         new_node_position = node_id_at_l;
         connection_id_at_l_in = connection_id_at_l;
         l_in = l;
+        cout << new_node_position << endl;
+        nodes_per_layer[l_in]++;
+        connections_per_layer[l_in]++;
+        connections_per_layer[l_out]++;
+        for (int i : nodes_per_layer) cout << i << " ";
+        cout << endl;
+        for (int i : connections_per_layer) cout << i << " ";
+        cout << endl;*/
 
         new_node_position = node_id_at_l_in + nodes_per_layer[l_in]; 
         nodes_per_layer[l_in+1]++;
@@ -490,18 +511,17 @@ void agent::compute_compatibility(agent* b, agent::compatibility_characteristics
             break;
         }
         if (node_marking_positions[i_a].marking == b->node_marking_positions[i_b].marking) {
-            pcc->average_bias_difference += abs(node_dna[node_marking_positions[i_a].position].bias - b->node_dna[b->node_marking_positions[i_b].position].bias);
+            // average weight since bias can be seen as a weight from a constant neuron 
+            pcc->average_weight_difference += abs(node_dna[node_marking_positions[i_a].position].bias - b->node_dna[b->node_marking_positions[i_b].position].bias);
             i_b++;
             n_common_nodes++;
+            n_common_connections++; //parce que le bias est compté comme un weight
         } else {
             pcc->n_disjoint_node_genes++;
         }
     }
     if (i_b != b->node_dna_length) { 
         pcc->n_excess_node_genes = b->node_dna_length - i_b;
-    }
-    if (n_common_nodes > 0) {
-        pcc->average_bias_difference /= n_common_nodes;
     }
 
 
@@ -533,14 +553,14 @@ void agent::compute_compatibility(agent* b, agent::compatibility_characteristics
     }
 }
 
-void agent::draw(sf::RenderWindow* window) {
+void agent::draw(sf::RenderWindow* window, int x_offset, int y_offset) {
 
     //store the drawn nodes'positions
     vector<float> node_x;
     vector<float> node_y;
     node_x.resize(node_dna_length);
     node_y.resize(node_dna_length);
-
+    
     // reuse the same shapes over and over again.
     sf::CircleShape base_node(10.f);
     base_node.setFillColor(sf::Color::White);
@@ -558,8 +578,8 @@ void agent::draw(sf::RenderWindow* window) {
     for (int layer = 0; layer < n_layers; layer++) {
         //nodes first
         for (int n_id = node_id; n_id < node_id + nodes_per_layer[layer]; n_id++) {
-            node_y[n_id] = 300 + 40*(n_id-node_id - (float)nodes_per_layer[layer]/2);
-            node_x[n_id] = (layer + 2) * 50;
+            node_y[n_id] = 300 + 40*(n_id-node_id - (float)nodes_per_layer[layer]/2) + y_offset;
+            node_x[n_id] = (layer + 2) * 50 + x_offset;
             base_node.setPosition(node_x[n_id], node_y[n_id]);
 
             if (node_dna[n_id].activation != *relu) {   //YELLOW IF SIGMOID, GREEN FOR RELU
@@ -587,8 +607,8 @@ void agent::draw(sf::RenderWindow* window) {
                 base_connection[0].color = sf::Color(0, 0, connection_color);
                 base_connection[1].color = sf::Color(0, 0, connection_color);
             }
-            base_connection[0].position = { 10 + node_x[connection_dna[c_id].input], 10 + node_y[connection_dna[c_id].input] };
-            base_connection[1].position = { 10 + node_x[connection_dna[c_id].output],10 + node_y[connection_dna[c_id].output] };
+            base_connection[0].position = { 10 + node_x[connection_dna[c_id].input],  10 + node_y[connection_dna[c_id].input]};
+            base_connection[1].position = { 10 + node_x[connection_dna[c_id].output], 10 + node_y[connection_dna[c_id].output]};
             window->draw(base_connection, 2, sf::Lines);
         }
         connection_id += connections_per_layer[layer];
@@ -613,6 +633,6 @@ float agent::evaluate_fitness(float data[100][2]) {
         s += pow(abs(forward_pass(&input)[0] - (data[i][0] * data[i][1])), 2);
         //s += pow(pow(forward_pass(&input)[0] - (data[i][0]*data[i][1]), 2) + .3, -1);    // = 1/(diff^2 + .1)
     }
-    return sqrt(s); 
+    return -sqrt(s)/ 10.0; 
 }
 
