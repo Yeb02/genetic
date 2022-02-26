@@ -190,15 +190,15 @@ vector<float> agent::forward_pass(vector<float> *input) {
 void agent::mutate(int& n_node_mutations, int& n_connection_mutations, std::vector<new_node_mutation>& new_node_mutations, std::vector<new_connection_mutation>& new_connection_mutations) {
 
     // mutate weights values
-    int n_weight_mutations = (int) connection_dna_length*uniform(rdm)/3;
+    int n_weight_mutations = (int) 2 + connection_dna_length*uniform(rdm) / 3;
     for (int i = 0; i<n_weight_mutations; i++){
-        connection_dna[(int) connection_dna_length*uniform(rdm)].weight += .1*(uniform(rdm)-.5);
+        connection_dna[(int) connection_dna_length*uniform(rdm)].weight += (uniform(rdm)-.5);
     }
     
     // mutate biases values
-    int n_bias_mutations = (int) node_dna_length*uniform(rdm)/3;
+    int n_bias_mutations = (int) 1 + connection_dna_length * uniform(rdm) / 6;
     for (int i = 0; i<n_bias_mutations; i++){
-        node_dna[(int) node_dna_length*uniform(rdm)].bias += .1*(uniform(rdm)-.5);
+        node_dna[(int) node_dna_length*uniform(rdm)].bias += (uniform(rdm)-.5);
     }
         
     // add a node in the middle of a connection
@@ -584,6 +584,7 @@ void agent::draw(sf::RenderWindow* window, int x_offset, int y_offset) {
 
             if (node_dna[n_id].activation != *relu) {   //YELLOW IF SIGMOID, GREEN FOR RELU
                 base_node.setFillColor(sf::Color::Yellow);
+                cout << "SIGMOID" << endl;
             } else {
                 base_node.setFillColor(sf::Color::Green);
             }

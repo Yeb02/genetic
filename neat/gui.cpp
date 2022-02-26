@@ -28,30 +28,34 @@ void gui::run_game() {
         Int32 previous_frame = clock.getElapsedTime().asMilliseconds();
         while (window->isOpen())
         {
-            Pop.run_one_evolution_step();
+            if (!Pop.run_one_evolution_step()) {
+                window->close();
+                break;
+            }
 
 
-            //detecting closure
+            //detecting window closure
             Event event;
             while (window->pollEvent(event))
             {
                 if (event.type == Event::Closed)
                     window->close();
             }
-
-            if (Keyboard::isKeyPressed(Keyboard::Space)) {
+            
+            // pause detection and loop
+            if (!is_paused && Keyboard::isKeyPressed(Keyboard::Space)) {
                 is_paused = true;
             }
-
-            // pause loop
-            while (is_paused) {
-                if (Keyboard::isKeyPressed(Keyboard::Space)){
-                    is_paused = false;
-                }
-                while (window->pollEvent(event))
-                {
-                    if (event.type == Event::Closed)
-                        window->close();
+            else {
+                while (is_paused) {
+                    if (Keyboard::isKeyPressed(Keyboard::Space)) {
+                        is_paused = false;
+                    }
+                    while (window->pollEvent(event))
+                    {
+                        if (event.type == Event::Closed)
+                            window->close();
+                    }
                 }
             }
 

@@ -33,9 +33,9 @@ class population{
 
     public:
         // c0: avg_b_diff, c1: avg_w_diff, c2: n_disjoint_n, c3: n_disjoint_c, c4: n_excess_n, c5: n_excess_c, le tout divisé par les dna_length respectifs
-        population(float C1=.2, float C2=.4, float C3=1.0, float C4=1.0, float C5=.4, float TRESHOLD=3.0,
+        population(float C1=1.0, float C2=1.0, float C3=.4, float TRESHOLD=1,
                    int N_SPECIMEN=100, int IN_SIZE=2, int OUT_SIZE=1, int N_SPECIES=10);
-        void run_one_evolution_step();
+        bool run_one_evolution_step();
         void draw(sf::RenderWindow* window, sf::Font& font);
 
 #if defined _DEBUG
@@ -43,7 +43,7 @@ class population{
 #endif
 
     private:
-        void evaluate_fitnesses();
+        bool evaluate_fitnesses();
         void speciate();
         void mate();
         void mutate();
