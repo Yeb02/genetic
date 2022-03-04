@@ -197,7 +197,6 @@ bool population::run_one_evolution_step() {
 
     if (steps % 100 == 99) {
         cout << "done with step    " << steps+1 << endl;
-
         vector<float> input1 = { 7.0, 6.0 };
         cout << "7*6 = " << specimens[fittest_individual]->forward_pass(&input1)[0] << endl;
         vector<float> input2 = { 3.0, 8.0 };
@@ -318,15 +317,23 @@ void population::draw(sf::RenderWindow* window, sf::Font& font) {
     cout << "disjoint nodes :  " << pcc->n_disjoint_node_genes << "    disjoint connections :  " << pcc->n_disjoint_connection_genes << endl;
     cout << endl;*/
 
+    sf::Text text1;
+    text1.setFont(font); 
+    text1.setString(to_string(compat) + "  " + to_string(actual_species_number));
+    text1.setCharacterSize(24); 
+    text1.setFillColor(sf::Color::White);
+    //text.setStyle(sf::Text::Bold | sf::Text::Underlined);
+    window->draw(text1);
+
+    sf::Text text2;
+    text2.setFont(font);
+    text2.setString("  excess_nodes:              " + to_string(pcc->n_excess_node_genes) + "   excess_connections:  " + to_string(pcc->n_excess_connection_genes)
+                  + "\n  disjoint_connections:      " + to_string(pcc->n_disjoint_connection_genes) + "   disjoint_nodes:  " + to_string(pcc->n_disjoint_node_genes)
+                  + "\n  average_weight_difference  " + to_string(pcc->average_weight_difference));
+    text2.setCharacterSize(20); 
+    text2.setFillColor(sf::Color::White);
+    text2.setPosition(0, 40);
+    window->draw(text2);
+
     delete pcc;
-
-    sf::Text text;
-    text.setFont(font); 
-    text.setString(to_string(compat));
-
-    text.setCharacterSize(24); // in pixels, not points!
-    text.setFillColor(sf::Color::White);
-    text.setStyle(sf::Text::Bold | sf::Text::Underlined);
-
-    window->draw(text);
 }

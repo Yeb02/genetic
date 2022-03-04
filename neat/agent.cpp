@@ -273,50 +273,58 @@ void agent::add_node(int& n_node_mutations, std::vector<new_node_mutation>& new_
         connections_per_layer.insert(iter2, 1);
         connections_per_layer[l_out+1]++; //+1 car on vient d'insérer la nouvelle layer
         n_layers++;
+        // faire l'insert dans cet ordre !!!! c1 puis c2, ordre de la propagation
+        c1_position = connection_id_at_l_in + connections_per_layer[l_in];
+        c2_position = connection_id_at_l_out + 1;  // +1 car on insère d'abord c1
 
     }   else { // else add at the beginning of a random layer between the two
-        /*cout << "start" << endl;
-        cout << l_in << " " << l_out << endl;
-        if (l_in == l_out) {
-            cout << "wtf" << endl;
-        }
+        //cout << "start" << endl;
+        //cout << l_in << " " << l_out << endl;
+        //if (l_in == l_out) {
+        //    cout << "wtf" << endl;
+        //}
         new_node_position = (node_id_at_l_out - node_id_at_l_in - nodes_per_layer[l_in])*uniform(rdm) + node_id_at_l_in + nodes_per_layer[l_in];
         node_id_at_l = node_id_at_l_in;
         l = l_in;
         connection_id_at_l = connection_id_at_l_in;
-        for (int i : nodes_per_layer) cout << i << " ";
-        cout << endl;
-        for (int i : connections_per_layer) cout << i << " ";
-        cout << endl;
-        cout << new_node_position << " " << endl;
-        cout << connection_id_at_l << " " << l << " " << node_id_at_l << " " << endl;
+        //for (int i : nodes_per_layer) cout << i << " ";
+        //cout << endl;
+        //for (int i : connections_per_layer) cout << i << " ";
+        //cout << endl;
+        //cout << new_node_position << " " << endl;
+        //cout << connection_id_at_l << " " << l << " " << node_id_at_l << " " << endl;
         while (node_id_at_l + nodes_per_layer[l] <= new_node_position) {
             node_id_at_l += nodes_per_layer[l];
             connection_id_at_l += connections_per_layer[l];
             l++;
-            cout << connection_id_at_l << " " << l << " " << node_id_at_l << " " << endl;
+            //cout << connection_id_at_l << " " << l << " " << node_id_at_l << " " << endl;
         }
         new_node_position = node_id_at_l;
         connection_id_at_l_in = connection_id_at_l;
         l_in = l;
-        cout << new_node_position << endl;
+        //cout << new_node_position << endl;
         nodes_per_layer[l_in]++;
         connections_per_layer[l_in]++;
         connections_per_layer[l_out]++;
-        for (int i : nodes_per_layer) cout << i << " ";
-        cout << endl;
-        for (int i : connections_per_layer) cout << i << " ";
-        cout << endl;*/
+        //for (int i : nodes_per_layer) cout << i << " ";
+        //cout << endl;
+        //for (int i : connections_per_layer) cout << i << " ";
+        //cout << endl;
+        
+        // faire l'insert dans cet ordre !!!! c1 puis c2, ordre de la propagation
+        c1_position = connection_id_at_l_in;
+        c2_position = connection_id_at_l_out + 1;  // +1 car on insère d'abord c1
 
-        new_node_position = node_id_at_l_in + nodes_per_layer[l_in]; 
-        nodes_per_layer[l_in+1]++;
-        connections_per_layer[l_in+1]++;
-        connections_per_layer[l_out]++;
+
+
+        //new_node_position = node_id_at_l_in + nodes_per_layer[l_in]; 
+        //nodes_per_layer[l_in+1]++;
+        //connections_per_layer[l_in+1]++;
+        //connections_per_layer[l_out]++;
+        //// faire l'insert dans cet ordre !!!! c1 puis c2, ordre de la propagation
+        //c1_position = connection_id_at_l_in + connections_per_layer[l_in];
+        //c2_position = connection_id_at_l_out + 1;  // +1 car on insère d'abord c1
     }
-
-    // faire l'insert dans cet ordre !!!! c1 puis c2, ordre de la propagation
-    c1_position = connection_id_at_l_in + connections_per_layer[l_in]; 
-    c2_position = connection_id_at_l_out + 1;  // +1 car on insère d'abord c1
 
 
     //décalage de l'output des connections pointant sur des nodes après le nouveau 
@@ -366,7 +374,6 @@ void agent::add_node(int& n_node_mutations, std::vector<new_node_mutation>& new_
     ng.in_value = 0.0;
     ng.out_value = 0.0;
     ng.is_enabled=true;
-    ng.activation = *relu;
     node_marking_positions.push_back({ng.marker, new_node_position});
     auto iter1 = node_dna.begin() + new_node_position;   
     node_dna.insert(iter1, ng);
@@ -429,8 +436,7 @@ void agent::add_connection(int& n_connection_mutations, std::vector<new_connecti
         in_id = min(v1, v2);
         out_id = max(v1, v2);
 
-        // déterminer les indices necessaire
-        // déterminer les indices necessaire
+        // déterminer les indices necessaire aux changements de l'adn
         //la premiere layer est un cas particulier puisque 0 connections, on la saute
         int l=1, node_id_at_l=nodes_per_layer[0], connection_id_at_l=0;
         while (node_id_at_l + nodes_per_layer[l] <= out_id) {
@@ -584,7 +590,6 @@ void agent::draw(sf::RenderWindow* window, int x_offset, int y_offset) {
 
             if (node_dna[n_id].activation != *relu) {   //YELLOW IF SIGMOID, GREEN FOR RELU
                 base_node.setFillColor(sf::Color::Yellow);
-                cout << "SIGMOID" << endl;
             } else {
                 base_node.setFillColor(sf::Color::Green);
             }
